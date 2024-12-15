@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snowboarder Game</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background-color: #a4c8e0;
+        }
+        .game-container {
+            display: inline-block;
+            position: relative;
+            border: 2px solid #000;
+            padding: 10px;
+            background-color: #fff;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+        }
+        .button-container {
+            margin: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #score {
+            font-size: 24px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Snowboarder Game</h1>
+
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+    </div>
+
+    <div class="button-container">
+        <button id="startBtn">Start Game</button>
+        <button id="restartBtn" style="display: none;">Restart Game</button>
+    </div>
+
+    <div id="score">Score: 0</div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let snowboarder = new Image();
+        snowboarder.src = 'https://media.istockphoto.com/id/1066056378/vector/silhouette-of-a-snowboarder-on-the-snowboard-free-rider-jumping-in-the-air-extreme.jpg?s=612x612&w=0&k=20&c=ddrVG4WXrVGVWBu_-aAyAzJ4OgCg80-9LrF3cQ_zVo0=';
+
+        let mountain = new Image();
+        mountain.src = 'https://t4.ftcdn.net/jpg/05/89/80/89/360_F_589808930_7OFov6CqUZ8tqfP1Tm2s2UHsVnFSTar8.jpg';
+
+        let snowboarderX = 50;
+        let snowboarderY = 300;
+        let snowboarderWidth = 50;
+        let snowboarderHeight = 50;
+        let snowboarderSpeed = 5;
+        let gravity = 0.8;
+        let jumpHeight = 15;
+        let jumpVelocity = 0;
+        let isJumping = false;
+
+        let mountains = [];
+        let mountainWidth = 60;
+        let mountainHeight = 80;
+        let mountainSpeed = 5;
+        let score = 0;
+        let gameStarted = false;
+        let frameCount = 0;
+
+        function createMountain() {
+            let mountainX = canvas.width;
+            let randomGap = Math.random() * 100 + 50; // Random gap between 50 and 150 pixels
+            mountains.push({ x: mountainX, gap: randomGap });
+        }
+
+        function updateGame() {
+            if (!gameStarted) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the snowboarder
+            ctx.drawImage(snowboarder, snowboarderX, snowboarderY, snowboarderWidth, snowboarderHeight);
+
+            // Draw and move mountains
+            for (let i = 0; i < mountains.length; i++) {
+                let mtn = mountains[i];
+                ctx.drawImage(mountain, mtn.x, canvas.height - mountainHeight, mountainWidth, mountainHeight);
+                mtn.x -= mountainSpeed;
+
+                // Remove mountain if it's off-screen
+                if (mtn.x < -mountainWidth) {
+                    mountains.splice(i, 1);
+                    score++;  // Increase score when a mountain is passed
+                    document.getElementById('score').textContent = 'Score: ' + score;
+                }
+            }
+
+            // Jump mechanics
+            if (isJumping) {
+                snowboarderY -= jumpHeight;
+                jumpHeight -= gravity;
+
+                if (snowboarderY >= 300) {
+                    snowboarderY = 300;
+                    isJumping = false;
+                    jumpHeight = 15;
+                }
+            }
+
+            // Create new mountains every 40 frames with random gap and gradually increasing speed
+            if (frameCount % 40 === 0) { // Increase frequency of mountains
+                createMountain();
+                mountainSpeed += 0.05;  // Gradually increase the speed of the mountains
+            }
+
+            frameCount++;
+
+            // Check for collision with mountains
+            for (let i = 0; i < mountains.length; i++) {
+                let mtn = mountains[i];
+                if (snowboarderX + snowboarderWidth > mtn.x && snowboarderX < mtn.x + mountainWidth && snowboarderY + snowboarderHeight > canvas.height - mountainHeight) {
+                    gameOver();
+                }
+            }
+
+            requestAnimationFrame(updateGame);
+        }
+
+        function gameOver() {
+            gameStarted = false;
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('restartBtn').style.display = 'inline-block';
+            alert("Game Over! Final Score: " + score);
+        }
+
+        function resetGame() {
+            snowboarderY = 300;
+            mountains = [];
+            score = 0;
+            document.getElementById('score').textContent = 'Score: ' + score;
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('restartBtn').style.display = 'none';
+            frameCount = 0;
+            gameStarted = false;
+        }
+
+        document.getElementById('startBtn').addEventListener('click', function() {
+            gameStarted = true;
+            this.style.display = 'none';
+            updateGame();
+        });
+
+        document.getElementById('restartBtn').addEventListener('click', resetGame);
+
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space' && !isJumping && gameStarted) {
+                isJumping = true;
+            }
+
+            if (event.code === 'ArrowRight' && gameStarted) {
+                snowboarderX += snowboarderSpeed;
+            }
+            if (event.code === 'ArrowLeft' && gameStarted) {
+                snowboarderX -= snowboarderSpeed;
+            }
+        });
+
+        snowboarder.onload = function() {
+            // Wait for snowboarder image to load before starting the game
+        };
+
+        mountain.onload = function() {
+            // Wait for mountain image to load before starting the game
+        };
+    </script>
+
+</body>
+ <!-- Button to go back to scratch page -->
+<link rel="stylesheet" href="css/styles2.css">
+<div class="centered-content">
+    <a href="shreddyyeti.html" class="game-button">Back to Shreddy Yeti Page</a>
+</div>
+<footer>
+    <div class="centered-content">
+    </div>
+</footer>
+</html>
